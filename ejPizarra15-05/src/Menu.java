@@ -31,6 +31,8 @@ public class Menu extends JFrame {
 	 * Create the frame.
 	 */
 	public Menu() {
+		
+		//No le hagais ni puto caso a esto
 		setTitle("Gestion de empleados");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 771, 507);
@@ -113,22 +115,58 @@ public class Menu extends JFrame {
 		lblInsertMessage.setBounds(233, 41, 241, 124);
 		contentPane.add(lblInsertMessage);
 		
+		//En esto si teneis que hacer caso
 		JButton btnModificarSalario = new JButton("Modificar salario");
 		btnModificarSalario.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String numero = modNumField.getText();
 				String salario = modSalField.getText();
+				/*Si queremos hacer mas de una query no podemos ponerlas todas en un string y a chuparla
+				 *Hay que ponerlas en strings separados y ejecutar una antes que la otra 
+				 */
 				String query = "Update empleados set salario =  "+salario+" where NumeroEmpleado = " +numero+";";
 				String query2 = "Select nombre, salario from empleados where NumeroEmpleado = "+numero+";";
 				try {
+					/*
+					 * Con el PreparedStatement pstm le metemos primero la segunda query, que es la que nos muestra
+					 * el nombre y el salario del notas ese que hemos pedido en el menu
+					 */
 					pstm = connection.prepareStatement(query2);
+					
+					/*
+					 * Como esta query nos devuelve por lo menos una fila tenemos que usar un resultset
+					 */
+					
 					ResultSet resultMessage = pstm.executeQuery();
+					
+					/*
+					 * con el metodo .next() lo que hacemos es movernos de fila. El ResultSet siempre empieza
+					 * en un limbo raro y hay que llamar a ese metodo pa q nos ponga en la primera fila
+					 */	
 					resultMessage.next();
+					
+					/*
+					 *Con el .getString() nos llevamos el valor que tenga esa columna, esto no es un array, aqui se empieza
+					 *por el numero 1 porque no estamos malitos de la cabeza
+					 *En este caso el numero 1 es el nombre y el 2 es el salario 
+					 */
+					
 					String resultName = resultMessage.getString(1);
 					String resultSalar = resultMessage.getString(2);
+					
 					int elegido = JOptionPane.showConfirmDialog(contentPane, "<html>El salario actual del empleado \"" +resultName + "\" es de:<br>"+resultSalar+"<br> Desea modificarlo?");
 					if(elegido ==0) {
+						/*
+						 * Aqui ya el usuario ha dicho que si, que le cambiemos el sueldo al tontopolla este, asi que ejecutamos
+						 * la primera query
+						 */
 						pstm = connection.prepareStatement(query);
+						
+						/*
+						 * Pa tirar un update/insert/delete hay que usar .executeUpdate(String query) en vez de .executeQuery()
+						 * ¿Por que? Y yo que coño se, a mi me ha petado con el .executeQuery() y he probado con esto y me funciona
+						 * Ahora yo creo que podeis leer el resto del codigo y mas o menos os enteraréis supongo
+						 */
 						int resultado = pstm.executeUpdate(query);
 						JOptionPane.showMessageDialog(contentPane, "El salario del empleado \""+resultName+"\" es de " +salario, "Modificar salario", 2);
 					}else {
